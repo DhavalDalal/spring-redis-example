@@ -1,0 +1,85 @@
+buildscript {
+    ext {
+        springBootVersion = '2.0.0.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'scala'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+
+defaultTasks 'clean', 'build'
+
+group = 'com.tsys'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://mvnrepository.com'
+    }
+}
+sourceSets {
+    main {
+        scala {
+            srcDirs = ['src/main/scala', 'src/main/java']
+        }
+        java {
+            srcDirs = []
+        }
+    }
+    test {
+        scala {
+            srcDirs = ['src/test/scala', 'src/test/java']
+        }
+        java {
+            srcDirs = []
+        }
+    }
+}
+
+dependencies {
+    // For Scala
+    compile 'org.scala-lang:scala-library:2.11.8'
+    compile 'org.scala-lang.modules:scala-parser-combinators_2.11:1.0.4'
+    testCompile 'org.scalatest:scalatest_2.11:3.0.0'
+    testCompile "org.scala-lang:scala-library:2.11.1"
+    testCompile 'junit:junit:4.12'
+
+    // For Redis
+    compile('redis.clients:jedis:2.9.0')
+    testCompile("com.github.kstyrc:embedded-redis:0.6")
+
+    // Spring framework
+    compile('org.springframework.boot:spring-boot-configuration-processor')
+    compile('org.springframework.boot:spring-boot-starter-actuator')
+    compile('org.springframework.boot:spring-boot-starter-data-redis')
+    compile('org.springframework.boot:spring-boot-starter-data-redis-reactive')
+    compile('org.springframework.boot:spring-boot-starter-web')
+    compile('org.springframework.boot:spring-boot-starter-webflux')
+    testCompile('org.springframework.boot:spring-boot-starter-test')
+    testCompile('io.projectreactor:reactor-test')
+
+    //Webjars
+    compile "org.webjars:bootstrap:3.1.1"
+    compile "org.webjars:jquery:2.1.0-2"
+    compile "org.webjars:webjars-locator:0.33"
+}
+
+task spec(dependsOn: ['testClasses'], type: JavaExec) {
+    main = 'org.scalatest.tools.Runner'
+    args = ['-R', 'build/classes/test', '-o']
+    classpath = sourceSets.test.runtimeClasspath
+}
+
+//test.dependsOn spec

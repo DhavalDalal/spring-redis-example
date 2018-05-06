@@ -1,0 +1,125 @@
+package com.tsys.digital.repository
+
+private final GeoOperations<String, Location> geoOps;
+  private final RedisTemplate<String, Location> redisTemplate;
+  private final Set<String> keys = Collections.synchronizedSet(new HashSet<>());
+  private final ZSetOperations<String, Location> zsetOps;
+  private final HashOperations<String, Object, Object> hashOps;
+
+  public RedisLocationRepository(RedisTemplate<String, Location> redisTemplate) {
+    this.redisTemplate = redisTemplate;
+    this.geoOps = redisTemplate.opsForGeo();
+    this.hashOps = redisTemplate.opsForHash();
+    this.zsetOps = redisTemplate.opsForZSet();
+  }
+
+  @Override
+  public Location save(Location location) {
+
+    hashOps.putAll();
+    final String key = postOffice.state();
+    this.geoOps.add(key, new Point(postOffice.geo().latitude(), postOffice.geo().longitude()), postOffice);
+    keys.add(key);
+    return postOffice;
+  }
+
+//  @Override
+//  public Iterable<Location> saveAll(Iterable<Location> postOffices) {
+//    final List<Location> pos = new ArrayList<>();
+//    postOffices.forEach(postOffice -> pos.add(save(postOffice)));
+//    return pos;
+//  }
+//
+//  @Override
+//  public Optional<Location> findFirstByName(String postOfficeName) {
+//    for (final String key : keys) {
+//      if (redisTemplate.hasKey(key))
+//        return Optional.ofNullable(redisTemplate.execute(new RedisCallback<Location>() {
+//          @Override
+//          public Location doInRedis(RedisConnection connection) throws DataAccessException {
+//            final List<Point> points = connection.geoCommands().geoPos(key.getBytes(), postOfficeName.getBytes());
+//            final Point point = points.get(0);
+//            return new Location(key, new GeoLocation(point.getX(), point.getY(), postOfficeName));
+//          }
+//        }));
+//    }
+//    return Optional.empty();
+//  }
+//
+//  @Override
+//  public Iterable<Location> findAll() {
+//    final Set<Location> postOffices = new HashSet<>();
+//    for (final String key : keys) {
+//      if (redisTemplate.hasKey(key)) {
+//        final Long size = zsetOps.size(key);
+//        final Set<Location> range = zsetOps.range(key, 0, size);
+//        postOffices.addAll(range);
+//      }
+//    }
+//    return postOffices;
+//  }
+//
+//  @Override
+//  public Iterable<Location> findAllByName(String postOfficeNameRegex) {
+//    final ScanOptions scanOptions = ScanOptions.scanOptions()
+//        .match(postOfficeNameRegex)
+//        .build();
+//
+//    final Set<Location> postOffices = new HashSet<>();
+//    for (final String key : keys) {
+//      if (redisTemplate.hasKey(key)) {
+//        try (Cursor<ZSetOperations.TypedTuple<Location>> scan = zsetOps.scan(key, scanOptions)) {
+//          scan.open().forEachRemaining(tuple -> {
+//            final Location postOffice = tuple.getValue();
+//            postOffices.add(postOffice);
+//          });
+//        } catch (IOException e) {
+//          e.printStackTrace();
+//        }
+//
+////        final Long size = zsetOps.size(key);
+////        final Set<Location> range = zsetOps.range(key, 0, size)
+////            .stream()
+////            .parallel()
+////            .filter(postOffice -> postOffice.geo().name().matches(postOfficeNameRegex))
+////            .collect(Collectors.toSet());
+////        postOffices.addAll(range);
+//      }
+//    }
+//    return postOffices;
+//  }
+//
+//
+//  @Override
+//  public long count() {
+//    long count = 0;
+//    for (final String key : keys) {
+//      if (redisTemplate.hasKey(key)) {
+//        count += zsetOps.size(key);
+//      }
+//    }
+//    return count;
+//  }
+//
+//  @Override
+//  public void delete(Location postOffice) {
+//    this.geoOps.remove(postOffice.state(), postOffice);
+//  }
+//
+//  @Override
+//  public void deleteAll(Iterable<Location> pos) {
+//    pos.forEach(postOffice -> delete(postOffice));
+//  }
+//
+//  @Override
+//  public void deleteAll() {
+//    for (final String key : keys) {
+//      if (redisTemplate.hasKey(key)) {
+//        try (final Cursor<ZSetOperations.TypedTuple<Location>> scan = zsetOps.scan(key, ScanOptions.NONE)) {
+//          scan.open();
+//        } catch (IOException e) {
+//          e.printStackTrace();
+//        }
+//      }
+//    }
+//  }
